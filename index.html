@@ -139,7 +139,8 @@
             transition: background-color 0.2s ease, transform 0.2s ease;
             box-shadow: 0 4px 15px var(--shadow);
         }
-        .main-btn:hover { background-color: var(--main-btn-hover); transform: translateY(-2px); }
+        .main-btn:hover:not(:disabled) { background-color: var(--main-btn-hover); transform: translateY(-2px); }
+        .main-btn:disabled { background-color: #95a5a6; cursor: not-allowed; transform: none; box-shadow: none; }
         
         .textarea-group { margin-bottom: 20px; text-align: left; }
         .textarea-group label { display: block; font-size: 14px; color: var(--text-p); margin-bottom: 8px; font-weight: bold; }
@@ -189,8 +190,8 @@
         <!-- ЭКРАН 3: Финиш -->
         <div id="end-screen" class="screen">
             <h1>Тест успешно завершён!</h1>
-            <p>Ваши ответы собраны и готовы к отправке.</p>
-            <button class="main-btn" onclick="downloadResults()">Скачать результаты</button>
+            <p>Нажмите на кнопку ниже, чтобы ваши ответы автоматически отправились лечащему врачу.</p>
+            <button id="send-btn" class="main-btn" onclick="sendEmail()">Отправить результаты врачу</button>
         </div>
     </div>
 
@@ -286,7 +287,6 @@
             setTimeout(() => { fadeWrapper.classList.remove('hidden'); }, 50);
         }
 
-        // ОБРАБОТКА ОТВЕТОВ С УМНОЙ ЛОГИКОЙ
         function processAnswer(questionId, section, answer, isDesire, desireText) {
             userAnswers.push({ id: questionId, section: section, answer: answer });
             
@@ -363,33 +363,56 @@
             document.getElementById('end-screen').classList.add('active');
         }
 
-        // === ИСПРАВЛЕНИЕ ЗДЕСЬ (МЕТКА BOM \uFEFF) ===
-        function downloadResults() {
-            let fileContent = "РЕЗУЛЬТАТЫ ПСИХОЛОГИЧЕСКОГО ОПРОСНИКА\n";
-            fileContent += "========================================\n\n";
+        // === НОВАЯ ЛОГИКА: ОТПРАВКА НА ПОЧТУ ОДНОЙ КНОПКОЙ ===
+        function sendEmail() {
+            const btn = document.getElementById('send-btn');
+            btn.innerText = 'Отправка... Пожалуйста, подождите';
+            btn.disabled = true; // блокируем кнопку от двойного нажатия
+
+            // Формируем красивый текст для письма
+            let emailContent = "РЕЗУЛЬТАТЫ ПСИХОЛОГИЧЕСКОГО ОПРОСНИКА\n";
+            emailContent += "========================================\n\n";
 
             let currentSection = "";
-
             userAnswers.forEach((item) => {
                 if (item.section !== currentSection) {
-                    fileContent += `\n--- ${item.section.toUpperCase()} ---\n`;
+                    emailContent += `\n--- ${item.section.toUpperCase()} ---\n`;
                     currentSection = item.section;
                 }
-                fileContent += `Вопрос ${item.id} -> ${item.answer}\n`;
+                emailContent += `Вопрос ${item.id} -> ${item.answer}\n`;
             });
 
-            // Добавлено '\uFEFF' - специальный символ, чтобы телефон видел русский язык
-            const blob = new Blob(['\uFEFF' + fileContent], { type: "text/plain;charset=utf-8" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            
-            const date = new Date();
-            const dateString = `${date.getDate()}-${date.getMonth()+1}-${date.getHours()}-${date.getMinutes()}`;
-            link.download = `Результаты_Теста_${dateString}.txt`;
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Отправляем данные через бесплатный сервис FormSubmit
+            fetch("https://formsubmit.co/ajax/g_khovzun@mail.ru", {
+                method: "POST",
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    _subject: "Новая анкета от пациента!", // Тема письма
+                    "Ответы пациента": emailContent // Само содержимое
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Если всё хорошо, показываем сообщение об успехе
+                    document.getElementById('end-screen').innerHTML = `
+                        <h1 style="color: #2ecc71;">✅ Успешно!</h1>
+                        <p>Ваши ответы отправлены лечащему врачу.</p>
+                        <p>Вы можете закрыть эту страницу.</p>
+                    `;
+                } else {
+                    throw new Error("Ошибка сервера");
+                }
+            })
+            .catch(error => {
+                // Если нет интернета или сервис заблокирован
+                btn.innerText = 'Ошибка. Попробовать снова';
+                btn.disabled = false;
+                alert("Произошла ошибка при отправке. Проверьте интернет-соединение и попробуйте нажать кнопку еще раз.");
+            });
         }
     </script>
 </body>
