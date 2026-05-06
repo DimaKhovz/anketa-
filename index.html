@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Комплексный психологический опросник</title>
+    <style>
+        /* ЦВЕТОВЫЕ ПЕРЕМЕННЫЕ */
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-p: #555555;
+            --text-muted: #7f8c8d;
+            --primary: #3498db;
+            --btn-bg: #fdfdfd;
+            --btn-border: #bdc3c7;
+            --btn-hover: #3498db;
+            --btn-text-hover: #ffffff;
+            --main-btn: #2ecc71;
+            --main-btn-hover: #27ae60;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --input-bg: #ffffff;
+        }
+
+        body.dark-theme {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-p: #cccccc;
+            --text-muted: #aaaaaa;
+            --primary: #4fc3f7;
+            --btn-bg: #2c2c2c;
+            --btn-border: #444444;
+            --btn-hover: #4fc3f7;
+            --btn-text-hover: #121212;
+            --main-btn: #00c853;
+            --main-btn-hover: #00e676;
+            --shadow: rgba(0, 0, 0, 0.5);
+            --input-bg: #2c2c2c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 2px solid var(--btn-border);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px var(--shadow);
+            transition: 0.3s;
+            z-index: 100;
+        }
+        .theme-toggle:hover { transform: scale(1.1); }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 90%;
+            max-width: 500px;
+            min-height: 400px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px var(--shadow);
+            padding: 40px 25px;
+            box-sizing: border-box;
+            text-align: center;
+            transition: background-color 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
+            margin: 40px 0;
+        }
+
+        h1 { font-size: 24px; color: var(--text-main); transition: color 0.4s ease; }
+        h2 { font-size: 18px; color: var(--text-main); font-weight: 500; line-height: 1.4; margin-bottom: 25px; transition: color 0.4s ease;}
+        p { line-height: 1.6; color: var(--text-p); transition: color 0.4s ease;}
+        
+        .progress-text { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; font-weight: bold; transition: color 0.4s ease;}
+        .section-title { color: var(--primary); font-size: 13px; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px;}
+        
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .fade-content { opacity: 1; transform: translateY(0); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
+        .fade-content.hidden { opacity: 0; transform: translateY(15px); }
+        
+        .option-btn {
+            display: block;
+            width: 100%;
+            background-color: var(--btn-bg);
+            border: 2px solid var(--btn-border);
+            color: var(--text-main);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            line-height: 1.4;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .option-btn:hover, .option-btn:active {
+            background-color: var(--btn-hover);
+            color: var(--btn-text-hover);
+            border-color: var(--btn-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px var(--shadow);
+        }
+
+        .main-btn {
+            background-color: var(--main-btn);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+        .main-btn:hover { background-color: var(--main-btn-hover); transform: translateY(-2px); }
+        
+        .textarea-group { margin-bottom: 20px; text-align: left; }
+        .textarea-group label { display: block; font-size: 14px; color: var(--text-p); margin-bottom: 8px; font-weight: bold; }
+        
+        textarea {
+            width: 100%;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 15px;
+            border: 2px solid var(--btn-border);
+            box-sizing: border-box;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 8px rgba(52, 152, 219, 0.3); }
+        ::placeholder { color: var(--text-muted); font-size: 14px;}
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">🌙</button>
+
+    <div class="container">
+        <!-- ЭКРАН 1: Старт -->
+        <div id="start-screen" class="screen active">
+            <h1>Комплексный опросник</h1>
+            <p>Тест включает вопросы на логику, эмоциональные реакции и бытовые предпочтения.</p>
+            <p>В некоторых вопросах вам будет предложено написать развернутый ответ, если это необходимо.</p>
+            <button class="main-btn" onclick="startTest()">Начать тест</button>
+        </div>
+
+        <!-- ЭКРАН 2: Вопросы -->
+        <div id="question-screen" class="screen">
+            <div class="progress-text" id="progress">Вопрос 1 из X</div>
+            <div id="fade-wrapper" class="fade-content">
+                <div id="section-title" class="section-title">Блок</div>
+                <h2 id="question-text">Текст вопроса</h2>
+                <div id="options-container">
+                    <!-- Контент JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 3: Финиш -->
+        <div id="end-screen" class="screen">
+            <h1>Тест успешно завершён!</h1>
+            <p>Ваши ответы собраны и готовы к отправке.</p>
+            <button class="main-btn" onclick="downloadResults()">Скачать результаты</button>
+        </div>
+    </div>
+
+    <script>
+        // --- ТЕМА ---
+        const themeBtn = document.getElementById('theme-btn');
+        const body = document.body;
+        if(localStorage.getItem('theme') === 'dark') { body.classList.add('dark-theme'); themeBtn.innerText = '☀️'; }
+        function toggleTheme() {
+            body.classList.toggle('dark-theme');
+            if(body.classList.contains('dark-theme')) { themeBtn.innerText = '☀️'; localStorage.setItem('theme', 'dark'); } 
+            else { themeBtn.innerText = '🌙'; localStorage.setItem('theme', 'light'); }
+        }
+
+        // --- БАЗА ВОПРОСОВ ---
+        const desiresList = [
+            "Желание контролировать всё вокруг", "Стремление к совершенству", "Желание материального достатка", 
+            "Желание избежать одиночества", "Желание мести", "Желание быть признанным", "Желание избегать ответственности", 
+            "Желание избегать изменений", "Желание постоянно быть занятым", "Желание спасать других", 
+            "Желание быть всем сразу", "Желание быть в центре внимания", "Желание угодить другим", "Склонность пренебрегать собой ради других"
+        ];
+
+        const questions = [
+            // БЛОК 1
+            { section: "Логическое мышление", id: "Л1", text: "Когда вы сталкиваетесь с проблемой, вы обычно:", options: { "A": "Сразу начинаете искать решение, не обращая внимания на детали.", "B": "Тщательно анализируете проблему с разных сторон, чтобы понять её суть.", "C": "Избегаете решать проблемы, если не знаете, как их решить.", "D": "Используете привычные методы, даже если они не всегда работают." } },
+            { section: "Логическое мышление", id: "Л2", text: "Если вам нужно выбрать решение для проблемы, вы:", options: { "A": "Интуитивно выбираете тот вариант, который кажется вам лучшим.", "B": "Сравниваете несколько вариантов и оцениваете их преимущества и недостатки.", "C": "Применяете тот вариант, который уже использовался в прошлом.", "D": "Доводите решение до автоматизма, не задумываясь о других вариантах." } },
+            { section: "Логическое мышление", id: "Л3", text: "Если традиционные способы решения проблемы не помогают, вы:", options: { "A": "Пробуете несколько других стандартных методов, пока не найдете подходящий.", "B": "Открыты к новым, нетрадиционным решениям и готовы экспериментировать.", "C": "Останавливаетесь, так как не знаете, что делать.", "D": "Сразу принимаете решение оставить всё, как есть." } },
+            { section: "Логическое мышление", id: "Л4", text: "Вы часто ищете инновационные решения?", options: { "A": "Да, я всегда стараюсь найти более эффективные способы решения задач.", "B": "Иногда, если это необходимо, но я предпочитаю проверенные методы.", "C": "Редко, мне проще использовать стандартные решения.", "D": "Я избегаю изменений и всегда использую то, что проверено временем." } },
+            { section: "Логическое мышление", id: "Л5", text: "Когда кто-то оспаривает ваши убеждения, вы:", options: { "A": "Защищаете свои взгляды без обсуждения, потому что уверены в их правильности.", "B": "Прислушиваетесь к доводам оппонента, и, если аргументы убедительные, готовы изменить свою точку зрения.", "C": "Ожидаете, что другие просто примут ваше мнение, не делая усилий по защите.", "D": "Игнорируете критику и продолжаете придерживаться своих взглядов." } },
+            { section: "Логическое мышление", id: "Л6", text: "Если вам представляют новый аргумент, который противоречит вашим убеждениям, вы:", options: { "A": "Незамедлительно начинаете защищать свою позицию, не учитывая новых данных.", "B": "Оцениваете аргумент, и если он логичен, вы готовы пересмотреть свои убеждения.", "C": "Невольно принимаете аргумент, даже если он неубедителен.", "D": "Игнорируете такой аргумент и продолжаете следовать своему мнению." } },
+            { section: "Логическое мышление", id: "Л7", text: "Как вы обычно поступаете, если вам представляют новую информацию?", options: { "A": "Я сразу верю в неё, если она кажется логичной.", "B": "Я проверяю источники и стараюсь удостовериться, что информация достоверна.", "C": "Я беру на веру, что она верная, особенно если её говорит авторитет.", "D": "Я игнорирую новую информацию, если она не совпадает с моими убеждениями." } },
+            { section: "Логическое мышление", id: "Л8", text: "Если информация противоречит вашим убеждениям, вы:", options: { "A": "Полностью отбрасываете её, так как уверены, что она неверная.", "B": "Проверяете её достоверность, используя другие источники и факты.", "C": "Оставляете её без внимания, так как она не подтверждается вашими взглядами.", "D": "Призываете других принять вашу точку зрения, несмотря на противоречия." } },
+            { section: "Логическое мышление", id: "Л9", text: "Когда стандартное решение не работает, вы:", options: { "A": "Пробуете другие стандартные методы, пока не найдете подходящий.", "B": "Ищете нестандартные, креативные решения.", "C": "Оставляете проблему нерешённой, не пытаясь найти новый путь.", "D": "Прекращаете искать решение и принимаете отсутствие действия как решение." } },
+            { section: "Логическое мышление", id: "Л10", text: "Как вы реагируете на неопределённость при принятии решения?", options: { "A": "Я не переживаю и сразу принимаю решение, полагаясь на интуицию.", "B": "Я стараюсь собирать как можно больше информации, чтобы уменьшить неопределенность.", "C": "Я предпочитаю избегать ситуаций с неопределенностью и ищу уверенность.", "D": "Я решаю проблему по мере того, как ситуация развивается." } },
+            { section: "Логическое мышление", id: "Л11", text: "Когда вам приводят аргументы, вы обычно:", options: { "A": "Принимаете их, если они логичны, не проверяя их достоверность.", "B": "Проверяете все аргументы на предмет достоверности и источников.", "C": "Оцените только с точки зрения того, кто их привел, и принимаете их на веру.", "D": "Сразу отвергаете все аргументы, которые не соответствуют вашей точке зрения." } },
+            { section: "Логическое мышление", id: "Л12", text: "Вы склонны менять свои убеждения, если получаете новый убедительный аргумент?", options: { "A": "Да, я всегда открыт для новых идей и готов пересмотреть свои убеждения.", "B": "Иногда, если аргумент логичен и подкреплен фактами.", "C": "Я редко меняю свои убеждения, даже если аргумент сильный.", "D": "Я никогда не меняю свои убеждения, так как уверен в их правильности." } },
+            { section: "Логическое мышление", id: "Л13", text: "Если вы не можете проверить факты, вы:", options: { "A": "Принимаете решение, основываясь на том, что вам известно.", "B": "Оцениваете вероятность того, что информация может быть верной, и принимаете обоснованные выводы.", "C": "Ожидаете получения дополнительных данных, прежде чем принять решение.", "D": "Игнорируете проблему, пока не получите полную информацию." } },
+            { section: "Логическое мышление", id: "Л14", text: "Когда вы сталкиваетесь с новой ситуацией, и не все факты известны, вы:", options: { "A": "Стремитесь использовать интуицию для быстрого решения проблемы.", "B": "Применяете анализ рисков и принимаете решение с учётом вероятностей.", "C": "Ожидаете, пока не появятся все факты, чтобы решить ситуацию.", "D": "Выбираете решение, которое кажется наиболее безопасным, даже если это не лучший вариант." } },
+
+            // БЛОК 2 (УМНЫЕ ВОПРОСЫ)
+            ...desiresList.map((text, i) => ({
+                section: "Психоэмоциональные желания", id: `Ж${i+1}`,
+                text: `Оцените выраженность желания:\n\n"${text}"`,
+                isDesire: true, desireText: text, // Флаги для умной логики
+                options: { "A": "Почти никогда / почти не испытываю", "B": "Иногда / слабо выражено", "C": "Часто / выражено", "D": "Почти всегда / очень выражено" }
+            })),
+
+            // БЛОК 3
+            { section: "Пищевые желания", id: "П1", text: "Какие вкусы вам чаще всего хочется?", options: { "A": "Сладкое", "B": "Солёное", "C": "Кислое", "D": "Острое / пряное" } },
+            { section: "Пищевые желания", id: "П2", text: "Как вы относитесь к жирной пище?", options: { "A": "Люблю и хорошо переношу", "B": "Иногда хочется", "C": "Избегаю, тяжело переношу", "D": "Вызывает неприятные ощущения" } },
+            { section: "Пищевые желания", id: "П3", text: "Есть ли продукты, которые вы особенно любите?", options: { "A": "Молочные продукты", "B": "Мясо", "C": "Овощи / фрукты", "D": "Сладости / выпечка" } },
+            { section: "Жажда и питьё", id: "П4", text: "Как вы пьёте воду?", options: { "A": "Часто, небольшими глотками", "B": "Редко, но много за раз", "C": "Почти не чувствую жажды", "D": "Пью умеренно" } },
+            { section: "Жажда и питьё", id: "П5", text: "Какие напитки вам больше нравятся?", options: { "A": "Холодные", "B": "Тёплые", "C": "Без разницы", "D": "Зависит от состояния" } },
+            { section: "Температурные предпочтения", id: "П6", text: "Какой климат вам комфортнее?", options: { "A": "Тёплый", "B": "Прохладный", "C": "Переменчивый", "D": "Сложно сказать" } },
+            { section: "Температурные предпочтения", id: "П7", text: "Как вы реагируете на холод?", options: { "A": "Легко мёрзну", "B": "Переношу нормально", "C": "Люблю прохладу", "D": "Зависит от ситуации" } },
+            { section: "Эмоциональные желания", id: "П8", text: "В трудные моменты вам больше хочется:", options: { "A": "Побыть одному", "B": "Поддержки и общения", "C": "Отвлечься и заняться делом", "D": "Ничего не хочется" } },
+            { section: "Эмоциональные желания", id: "П9", text: "Как вы относитесь к вниманию со стороны других?", options: { "A": "Люблю внимание", "B": "Иногда нужно", "C": "Избегаю", "D": "Зависит от настроения" } },
+            { section: "Активность и поведение", id: "П10", text: "Что вам ближе?", options: { "A": "Активность, движение", "B": "Спокойствие, размеренность", "C": "Чередование активности и отдыха", "D": "Быстрая утомляемость" } },
+            { section: "Активность и поведение", id: "П11", text: "Как вы принимаете решения?", options: { "A": "Быстро и уверенно", "B": "После размышлений", "C": "Сомневаюсь и откладываю", "D": "Ориентируюсь на мнение других" } },
+            { section: "Общие предпочтения", id: "П12", text: "Как вы относитесь к режиму и порядку?", options: { "A": "Люблю порядок и структуру", "B": "Предпочитаю гибкость", "C": "Часто хаотичен", "D": "Зависит от обстоятельств" } },
+            { section: "Общие предпочтения", id: "П13", text: "Что вам чаще хочется в повседневной жизни?", options: { "A": "Стабильности", "B": "Новизны", "C": "Спокойствия", "D": "Изменений, но без риска" } },
+            { section: "Общие предпочтения", id: "П14", text: "Как вы реагируете на ограничения?", options: { "A": "Раздражаюсь", "B": "Спокойно принимаю", "C": "Стараюсь обойти", "D": "Теряюсь и не знаю, как действовать" } }
+        ];
+
+        let currentIndex = 0;
+        let userAnswers = [];
+
+        function startTest() {
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('question-screen').classList.add('active');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const currentQ = questions[currentIndex];
+            const fadeWrapper = document.getElementById('fade-wrapper');
+            
+            document.getElementById('progress').innerText = `Вопрос ${currentIndex + 1} из ${questions.length}`;
+            document.getElementById('section-title').innerText = currentQ.section;
+            document.getElementById('question-text').innerText = currentQ.text;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            for (const [letter, text] of Object.entries(currentQ.options)) {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = `${letter}) ${text}`;
+                btn.onclick = () => processAnswer(currentQ.id, currentQ.section, `${letter} - ${text}`, currentQ.isDesire, currentQ.desireText);
+                optionsContainer.appendChild(btn);
+            }
+
+            setTimeout(() => { fadeWrapper.classList.remove('hidden'); }, 50);
+        }
+
+        // ОБРАБОТКА ОТВЕТОВ С УМНОЙ ЛОГИКОЙ
+        function processAnswer(questionId, section, answer, isDesire, desireText) {
+            userAnswers.push({ id: questionId, section: section, answer: answer });
+            
+            const fadeWrapper = document.getElementById('fade-wrapper');
+            fadeWrapper.classList.add('hidden');
+
+            setTimeout(() => {
+                if (isDesire && (answer.startsWith('C') || answer.startsWith('D'))) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    renderTextFollowUp(questionId, section, desireText);
+                } else {
+                    currentIndex++;
+                    if (currentIndex < questions.length) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        renderQuestion();
+                    } else {
+                        showEndScreen();
+                    }
+                }
+            }, 300);
+        }
+
+        function renderTextFollowUp(baseQuestionId, section, desireText) {
+            const fadeWrapper = document.getElementById('fade-wrapper');
+            
+            document.getElementById('section-title').innerText = "Уточнение к желанию";
+            document.getElementById('question-text').innerText = `Поскольку желание "${desireText}" у вас сильно выражено, пожалуйста, уточните:`;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = `
+                <div class="textarea-group">
+                    <label>Ваши эмоции, мысли и физические ощущения, если оно НЕ реализуется:</label>
+                    <textarea id="ta-emotions" rows="3" placeholder="Напишите здесь..."></textarea>
+                </div>
+                <div class="textarea-group">
+                    <label>Что ПОМОГАЕТ облегчить состояние?</label>
+                    <textarea id="ta-helps" rows="2" placeholder="Напишите здесь..."></textarea>
+                </div>
+                <div class="textarea-group">
+                    <label>Что УХУДШАЕТ состояние?</label>
+                    <textarea id="ta-worsens" rows="2" placeholder="Напишите здесь..."></textarea>
+                </div>
+                <button class="main-btn" onclick="saveTextFollowUp('${baseQuestionId}', '${section}')">Сохранить ответы</button>
+            `;
+
+            setTimeout(() => { fadeWrapper.classList.remove('hidden'); }, 50);
+        }
+
+        function saveTextFollowUp(baseQuestionId, section) {
+            const emotions = document.getElementById('ta-emotions').value.trim() || "Нет ответа";
+            const helps = document.getElementById('ta-helps').value.trim() || "Нет ответа";
+            const worsens = document.getElementById('ta-worsens').value.trim() || "Нет ответа";
+
+            userAnswers.push({ id: baseQuestionId + " (Эмоции/мысли)", section: section, answer: emotions });
+            userAnswers.push({ id: baseQuestionId + " (Что помогает)", section: section, answer: helps });
+            userAnswers.push({ id: baseQuestionId + " (Что ухудшает)", section: section, answer: worsens });
+
+            const fadeWrapper = document.getElementById('fade-wrapper');
+            fadeWrapper.classList.add('hidden');
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < questions.length) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    renderQuestion();
+                } else {
+                    showEndScreen();
+                }
+            }, 300);
+        }
+
+        function showEndScreen() {
+            document.getElementById('question-screen').classList.remove('active');
+            document.getElementById('end-screen').classList.add('active');
+        }
+
+        // === ИСПРАВЛЕНИЕ ЗДЕСЬ (МЕТКА BOM \uFEFF) ===
+        function downloadResults() {
+            let fileContent = "РЕЗУЛЬТАТЫ ПСИХОЛОГИЧЕСКОГО ОПРОСНИКА\n";
+            fileContent += "========================================\n\n";
+
+            let currentSection = "";
+
+            userAnswers.forEach((item) => {
+                if (item.section !== currentSection) {
+                    fileContent += `\n--- ${item.section.toUpperCase()} ---\n`;
+                    currentSection = item.section;
+                }
+                fileContent += `Вопрос ${item.id} -> ${item.answer}\n`;
+            });
+
+            // Добавлено '\uFEFF' - специальный символ, чтобы телефон видел русский язык
+            const blob = new Blob(['\uFEFF' + fileContent], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            
+            const date = new Date();
+            const dateString = `${date.getDate()}-${date.getMonth()+1}-${date.getHours()}-${date.getMinutes()}`;
+            link.download = `Результаты_Теста_${dateString}.txt`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
